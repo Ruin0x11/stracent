@@ -577,8 +577,10 @@ ihiPatchedFuncEntry(
     // Log API Parameters Information and Return Value.
     //
     LPCSTR funcName = NULL;
-    funcName = gPatchManager.GetFuncNameAt(dwId);
-    gPatchManager.GetFnReturnValueInfoAt(dwId, returnValueInfo);
+	funcName = gPatchManager.GetFuncNameAt(dwId);
+	gPatchManager.GetFnReturnValueInfoAt(dwId, returnValueInfo);
+	LPCSTR moduleName = NULL;
+	moduleName = gPatchManager.GetModuleNameAt(dwId);
 
     ULONG trcIndex;
     PST_TRACE_DATA trcData;
@@ -601,22 +603,23 @@ ihiPatchedFuncEntry(
         trcData->IsReturnValueModified = returnValueInfo.UserSpecified;
         trcData->OrigReturnValue = (ULONG_PTR)returnValue;
         trcData->NewReturnValue = returnValueInfo.Value;
-        trcData->IsReady = TRUE;
+		trcData->IsReady = TRUE;
+		strncpy(trcData->ModuleName, moduleName, sizeof(trcData->ModuleName) - 1);
     }
     else
     {
         char szStr[1024];
         if (returnValueInfo.UserSpecified)
         {
-            xsprintf(szStr, "$[T%d] %s(%x, %x, %x, %x, ...) = %x -> %x\n",
-                     GetCurrentThreadId(), funcName, *pFirstParam,
+            xsprintf(szStr, "$[T%d] %s:%s(%x, %x, %x, %x, ...) = %x -> %x\n",
+                     GetCurrentThreadId(), moduleName, funcName, *pFirstParam,
                      *(pFirstParam + 1), *(pFirstParam + 2),
                      *(pFirstParam + 3), returnValue, returnValueInfo.Value);
         }
         else
         {
-            xsprintf(szStr, "$[T%d] %s(%x, %x, %x, %x, ...) = %x\n",
-                     GetCurrentThreadId(), funcName, *pFirstParam,
+            xsprintf(szStr, "$[T%d] %s:%s(%x, %x, %x, %x, ...) = %x\n",
+                     GetCurrentThreadId(), moduleName, funcName, *pFirstParam,
                      *(pFirstParam + 1), *(pFirstParam + 2),
                      *(pFirstParam + 3), returnValue);
         }
@@ -722,7 +725,7 @@ ihiPatchedFuncEntry(
                 
                 IHU_DBG_LOG_EX(TRC_PATCHIAT, IHU_LEVEL_INFO, L"Inserting hook for %S:%S\n", szModuleName, fnName);
 
-                LPVOID pfnNew = gPatchManager.InsertNewPatch(fnName, returnValue, returnValueInfo);
+				LPVOID pfnNew = gPatchManager.InsertNewPatch(fnName, returnValue, returnValueInfo, szModuleName);
                 if (pfnNew != NULL)
                 {
                     returnValue = pfnNew;
@@ -1001,7 +1004,7 @@ ihiPatchUnpatchImports(
                         // with our hook function address
                         if (VirtualProtect(&pITDA->u1.Function, sizeof(DWORD), PAGE_READWRITE, &dwOldProtect))
                         {
-                            pfnNew = gPatchManager.InsertNewPatch(fnName, pfnOld, returnValueInfo);
+							pfnNew = gPatchManager.InsertNewPatch(fnName, pfnOld, returnValueInfo, pszModule);
 
                             if (pfnNew)
                             {

@@ -204,7 +204,8 @@ LPVOID
 CPatchManager::InsertNewPatch(
     LPSTR           inApiName,
     LPVOID          inOrigFuncAddr,
-    IHI_FN_RETURN_VALUE &inRetValInfo)
+	IHI_FN_RETURN_VALUE &inRetValInfo,
+	LPSTR           inModuleName)
 {
     LPVOID funcReturn = NULL;
     IHI_PATCHED_API_DATA *patchedApiArray = NULL;
@@ -261,7 +262,11 @@ CPatchManager::InsertNewPatch(
     StringCchCopyA(
         patchedApiArray->mApiData[entryIndex].mApiName,
         MAX_API_NAME_LENGTH,
-        inApiName);
+		inApiName);
+	StringCchCopyA(
+		patchedApiArray->mApiData[entryIndex].mModuleName,
+		MAX_API_NAME_LENGTH,
+		inModuleName);
 
     patchedApiArray->mApiData[entryIndex].mOriginalAddress  = inOrigFuncAddr;
     patchedApiArray->mApiData[entryIndex].mReturnValue      = inRetValInfo;
@@ -411,6 +416,36 @@ CPatchManager::GetFuncNameAt(
     IHI_PATCHED_API_DATA *patchedApiArray = GetPatchedApiArrayAt(tableIndex);
 
     return patchedApiArray->mApiData[entryIndex].mApiName;
+}
+
+
+/*++
+
+Routine Name:
+
+GetModuleNameAt
+
+Routine Description:
+
+Returns the name of a module at given index
+
+Return:
+
+Module name
+
+--*/
+LPCSTR
+CPatchManager::GetModuleNameAt(
+ULONG inIndex)
+{
+	//IHU_DBG_ASSERT(inIndex < mPatchedApiCount);
+
+	ULONG tableIndex = inIndex / M_HOOK_ENTRY_CHUNK_SIZE;
+	ULONG entryIndex = inIndex % M_HOOK_ENTRY_CHUNK_SIZE;
+
+	IHI_PATCHED_API_DATA *patchedApiArray = GetPatchedApiArrayAt(tableIndex);
+
+	return patchedApiArray->mApiData[entryIndex].mModuleName;
 }
 
 

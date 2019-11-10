@@ -26,7 +26,8 @@ typedef struct _ST_TRACE_DATA {
     ULONG_PTR Edx;
     ULONG_PTR OrigReturnValue;
     BOOL IsReturnValueModified;
-    ULONG_PTR NewReturnValue;
+	ULONG_PTR NewReturnValue;
+	CHAR ModuleName[64];
 } ST_TRACE_DATA, *PST_TRACE_DATA;
 
 typedef struct _IHI_RING_BUFFER {

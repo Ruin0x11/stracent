@@ -132,6 +132,8 @@ UdpTransmitSocket* transmitSocket;
 char buffer[OUTPUT_BUFFER_SIZE];
 osc::OutboundPacketStream* p;
 
+bool gTraceOutput = false;
+
 //
 // Actions list based on the command line supplied
 // by the user
@@ -339,37 +341,47 @@ CaptureThread(LPVOID inParam)
             // gView->PrintTrace(L".");
         }
 
-        gView->PrintTrace(L"%S(%x, %x, %x, %x) = %x",
-                          trcData->FunctionName, trcData->FunctionArgs[0],
-                          trcData->FunctionArgs[1], trcData->FunctionArgs[2],
-                          trcData->FunctionArgs[3], trcData->OrigReturnValue);
+		if (gTraceOutput) {
+			gView->PrintTrace(L"%S:%S(%x, %x, %x, %x) = %x",
+				trcData->ModuleName, trcData->FunctionName, trcData->FunctionArgs[0],
+				trcData->FunctionArgs[1], trcData->FunctionArgs[2],
+				trcData->FunctionArgs[3], trcData->OrigReturnValue);
 
-        if (trcData->IsReturnValueModified)
-        {
-            gView->PrintTrace(L" -> %x\n", trcData->NewReturnValue);
-        }
-        else
-        {
-            gView->PrintTrace(L"\n");
-        }
+			if (trcData->IsReturnValueModified)
+			{
+				gView->PrintTrace(L" -> %x\n", trcData->NewReturnValue);
+			}
+			else
+			{
+				gView->PrintTrace(L"\n");
+			}
+		}
 
 		char pathName[128];
-		sprintf(pathName, "/%s", trcData->FunctionName);
+		sprintf(pathName, "/strace/%s", trcData->FunctionName);
 
 		*p << osc::BeginBundleImmediate
 			<< osc::BeginMessage(pathName)
-			<< (osc::int64)trcData->FunctionArgs[0]
-			<< (osc::int64)trcData->FunctionArgs[1]
-			<< (osc::int64)trcData->FunctionArgs[2]
-			<< (osc::int64)trcData->FunctionArgs[3]
-			<< (osc::int64)trcData->OrigReturnValue;
+			<< (osc::int32)trcData->FunctionArgs[0]
+			<< (osc::int32)trcData->FunctionArgs[1]
+			<< (osc::int32)trcData->FunctionArgs[2]
+			<< (osc::int32)trcData->FunctionArgs[3]
+			<< (osc::int32)trcData->OrigReturnValue;
 		if (trcData->IsReturnValueModified)
 		{
-			*p << (osc::int64)trcData->NewReturnValue;
+			*p << (osc::int32)trcData->NewReturnValue;
+		}
+		else
+		{
+			*p << (osc::int32)0;
 		}
 
-		*p << osc::EndBundle;
+		*p << (osc::int32)trcData->Ecx;
+		*p << (osc::int32)trcData->Edx;
+
+		*p << osc::EndMessage << osc::EndBundle;
 		transmitSocket->Send(p->Data(), p->Size());
+		p->Clear();
 
         trcData->IsReady = FALSE;
         ihiRingBufferFree(gTraceRingBuffer);
@@ -897,7 +909,12 @@ Routine Description:
                  _wcsicmp(argV[indexArgs], L"/d") == 0)
         {
             gOnlyUseDebugOutput = true;
-        }
+		}
+		else if (_wcsicmp(argV[indexArgs], L"-o") == 0 ||
+			_wcsicmp(argV[indexArgs], L"/o") == 0)
+		{
+			gTraceOutput = true;
+		}
         else if (_wcsicmp(argV[indexArgs], L"-l") == 0 ||
                  _wcsicmp(argV[indexArgs], L"/l") == 0)
         {

@@ -214,8 +214,10 @@ typedef struct _IHI_API_DATA
     PVOID               mOriginalAddress;
 
     // If user specified a different return value, save it here
-    IHI_FN_RETURN_VALUE mReturnValue;
+	IHI_FN_RETURN_VALUE mReturnValue;
 
+	// API name inside IAT is always in Ascii
+	char                mModuleName[MAX_API_NAME_LENGTH];
 }IHI_API_DATA;
 
 //
@@ -326,7 +328,11 @@ public:
 
     LPCSTR
         GetFuncNameAt(
-        ULONG inIndex);
+		ULONG inIndex);
+
+	LPCSTR
+		GetModuleNameAt(
+		ULONG inIndex);
 
     void
         GetFnReturnValueInfoAt(
@@ -337,7 +343,8 @@ public:
         InsertNewPatch(
         LPSTR           inApiName,
         LPVOID          inOrigFuncAddr,
-        IHI_FN_RETURN_VALUE &inRetValInfo);
+        IHI_FN_RETURN_VALUE &inRetValInfo,
+		LPSTR           inModuleName);
 
     void
         RemoveAllPatches();
