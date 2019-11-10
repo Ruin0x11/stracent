@@ -17,6 +17,13 @@
     <ClCompile Include="..\src\app\gui\stmiscdlgs.cpp" />
     <ClCompile Include="..\src\app\gui\stoptionsdlg.cpp" />
     <ClCompile Include="..\src\app\strace.cpp" />
+    <ClCompile Include="..\src\ip\IpEndpointName.cpp" />
+    <ClCompile Include="..\src\ip\win32\NetworkingUtils.cpp" />
+    <ClCompile Include="..\src\ip\win32\UdpSocket.cpp" />
+    <ClCompile Include="..\src\osc\OscOutboundPacketStream.cpp" />
+    <ClCompile Include="..\src\osc\OscPrintReceivedElements.cpp" />
+    <ClCompile Include="..\src\osc\OscReceivedElements.cpp" />
+    <ClCompile Include="..\src\osc\OscTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\app\gui\stcommon.h" />
@@ -27,6 +34,19 @@
     <ClInclude Include="..\src\app\gui\stoptionsdlg.h" />
     <ClInclude Include="..\src\app\strace.h" />
     <ClInclude Include="..\src\app\stres.h" />
+    <ClInclude Include="..\src\ip\IpEndpointName.h" />
+    <ClInclude Include="..\src\ip\NetworkingUtils.h" />
+    <ClInclude Include="..\src\ip\PacketListener.h" />
+    <ClInclude Include="..\src\ip\TimerListener.h" />
+    <ClInclude Include="..\src\ip\UdpSocket.h" />
+    <ClInclude Include="..\src\osc\MessageMappingOscPacketListener.h" />
+    <ClInclude Include="..\src\osc\OscException.h" />
+    <ClInclude Include="..\src\osc\OscHostEndianness.h" />
+    <ClInclude Include="..\src\osc\OscOutboundPacketStream.h" />
+    <ClInclude Include="..\src\osc\OscPacketListener.h" />
+    <ClInclude Include="..\src\osc\OscPrintReceivedElements.h" />
+    <ClInclude Include="..\src\osc\OscReceivedElements.h" />
+    <ClInclude Include="..\src\osc\OscTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\app\gui\stgui.rc" />
@@ -64,13 +84,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);..\extrn\ihulib\bin\$(Platform)\$(Configuration)</LibraryPath>
-    <OutDir>$(SolutionDir)..\bld\bin\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\bld\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\bld\tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);..\extrn\ihulib\bin\$(Platform)\$(Configuration)</LibraryPath>
-    <OutDir>$(SolutionDir)..\bld\bin\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\bld\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\bld\tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -80,13 +100,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\app;$(SolutionDir)..\src\inc;$(SolutionDir)..\extrn\ihulib\bin;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\ip;$(SolutionDir)..\src\osc;$(SolutionDir)..\src\app;$(SolutionDir)..\src\inc;$(SolutionDir)\..\src\ihulib\inc;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);psapi.lib;ihulib.lib;comctl32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);psapi.lib;ihulib.lib;comctl32.lib;Ws2_32.lib;winmm.lib;</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\src\inc;$(OutDir);$(SolutionDir)..\src\app;</AdditionalIncludeDirectories>

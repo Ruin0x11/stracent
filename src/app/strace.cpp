@@ -53,6 +53,9 @@ Module Description:
 #include "stcmn.h"
 #include "strace.h"
 
+#include "UdpSocket.h"
+#include "OscOutboundPacketStream.h"
+
 #define ERR_INJDLL_ERROR_BASE       0x20001000
 #define ERR_PROCESS_NOT_FOUND       (ERR_INJDLL_ERROR_BASE + 1)
 #define ERR_INVALID_PROCESS_ID      (ERR_INJDLL_ERROR_BASE + 2)
@@ -124,6 +127,11 @@ IHI_SHARED_MEMORY gTraceMemory;
 PIHI_RING_BUFFER gTraceRingBuffer;
 PST_TRACE_DATA gTraceBuffer;
 
+#define OUTPUT_BUFFER_SIZE 4096
+UdpTransmitSocket* transmitSocket;
+char buffer[OUTPUT_BUFFER_SIZE];
+osc::OutboundPacketStream* p;
+
 //
 // Actions list based on the command line supplied
 // by the user
@@ -155,6 +163,8 @@ Routine Description:
 {
     gView = inView;
     stObtainSeDebugPrivilege();
+	transmitSocket = new UdpTransmitSocket(IpEndpointName("127.0.0.1", 7000));
+	p = new osc::OutboundPacketStream(buffer, OUTPUT_BUFFER_SIZE);
 }
 
 void
@@ -317,6 +327,7 @@ CaptureThread(LPVOID inParam)
     {
         if (ihiRingBufferIsEmpty(gTraceRingBuffer))
         {
+
             SwitchToThread();
 		    goto LoopAgain;
         }
@@ -341,6 +352,24 @@ CaptureThread(LPVOID inParam)
         {
             gView->PrintTrace(L"\n");
         }
+
+		char pathName[128];
+		sprintf(pathName, "/%s", trcData->FunctionName);
+
+		*p << osc::BeginBundleImmediate
+			<< osc::BeginMessage(pathName)
+			<< (osc::int64)trcData->FunctionArgs[0]
+			<< (osc::int64)trcData->FunctionArgs[1]
+			<< (osc::int64)trcData->FunctionArgs[2]
+			<< (osc::int64)trcData->FunctionArgs[3]
+			<< (osc::int64)trcData->OrigReturnValue;
+		if (trcData->IsReturnValueModified)
+		{
+			*p << (osc::int64)trcData->NewReturnValue;
+		}
+
+		*p << osc::EndBundle;
+		transmitSocket->Send(p->Data(), p->Size());
 
         trcData->IsReady = FALSE;
         ihiRingBufferFree(gTraceRingBuffer);
